@@ -46,22 +46,37 @@ class RedpandaPipeline:
         self._config = config or RedpandaConfig()
         self._producer: KafkaProducer | None = None
 
-    def connect(self):
-        """Initialize the Kafka/Redpanda producer."""
+    def connect(self, raise_on_error: bool = False) -> bool:
+        """Initialize the Kafka/Redpanda producer.
+        
+        Args:
+            raise_on_error: If True, raises on connection failure.
+                           If False (default), logs warning and returns False.
+        
+        Returns:
+            True if connected successfully, False otherwise.
+        """
         if self._producer is not None:
-            return
+            return True
 
-        self._producer = KafkaProducer(
-            bootstrap_servers=self._config.bootstrap_servers,
-            batch_size=self._config.batch_size,
-            linger_ms=self._config.linger_ms,
-            compression_type=self._config.compression_type,
-            acks=self._config.acks,
-            max_request_size=10 * 1024 * 1024,  # 10MB
-            retries=self._config.max_retries,
-            value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode("utf-8"),
-        )
-        logger.info("Redpanda producer connected to %s", self._config.bootstrap_servers)
+        try:
+            self._producer = KafkaProducer(
+                bootstrap_servers=self._config.bootstrap_servers,
+                batch_size=self._config.batch_size,
+                linger_ms=self._config.linger_ms,
+                compression_type=self._config.compression_type,
+                acks=self._config.acks,
+                max_request_size=10 * 1024 * 1024,  # 10MB
+                retries=self._config.max_retries,
+                value_serializer=lambda v: json.dumps(v, ensure_ascii=False).encode("utf-8"),
+            )
+            logger.info("Redpanda producer connected to %s", self._config.bootstrap_servers)
+            return True
+        except Exception as exc:
+            logger.warning("Redpanda connection to %s failed: %s", self._config.bootstrap_servers, exc)
+            if raise_on_error:
+                raise
+            return False
 
     def topic_name(self, plugin_id: str, task_name: str = "default") -> str:
         """Get the topic name for a given plugin + task pair."""
@@ -78,10 +93,12 @@ class RedpandaPipeline:
     ) -> int:
         """Send a batch of scraped data to the topic.
 
-        Returns the number of items sent.
+        Returns the number of items sent (0 if not connected).
         """
         if self._producer is None:
-            raise RedpandaError("Producer not connected. Call connect() first.")
+            logger.warning("Redpanda not connected, skipping send (run=%s, topic=%s.%s)",
+                           run_id, plugin_id, task_name)
+            return 0
 
         topic = self.topic_name(plugin_id, task_name)
 

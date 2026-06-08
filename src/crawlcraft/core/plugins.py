@@ -50,8 +50,9 @@ def load_plugins() -> dict[str, BaseScraper]:
     _registry.clear()
 
     for module_name, path in _discover_plugins():
-        if path not in sys.path:
-            sys.path.insert(0, path)
+        parent_dir = str(Path(path).parent)
+        if parent_dir not in sys.path:
+            sys.path.insert(0, parent_dir)
 
         try:
             mod = importlib.import_module(module_name)
