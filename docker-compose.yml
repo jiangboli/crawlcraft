@@ -1,0 +1,40 @@
+version: "3.9"
+
+services:
+  crawlcraft:
+    build: .
+    container_name: crawlcraft
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8910:8910"
+    environment:
+      # ── Redpanda ──────────────────────────────────────────────
+      - CRAWL_REDPANDA_BOOTSTRAP_SERVERS=${CRAWL_REDPANDA_BOOTSTRAP_SERVERS:-172.16.10.3:9092}
+      - CRAWL_REDPANDA_TOPIC_PREFIX=${CRAWL_REDPANDA_TOPIC_PREFIX:-crawl}
+      - CRAWL_REDPANDA_LINGER_MS=${CRAWL_REDPANDA_LINGER_MS:-1000}
+      # ── Daemon ────────────────────────────────────────────────
+      - CRAWL_DAEMON_PORT=8910
+      - CRAWL_DAEMON_HOST=0.0.0.0
+      # ── Python ────────────────────────────────────────────────
+      - PYTHONUNBUFFERED=1
+    volumes:
+      # Persistent data (SQLite DB, logs)
+      - crawlcraft_data:/data
+      # Hot-plug scrapers: mount your plugins here
+      - ./plugins:/plugins:ro
+      # Mount .env for config overrides (optional)
+      - ./docker.env:/app/.env:ro
+    networks:
+      - crawlcraft_net
+
+volumes:
+  crawlcraft_data:
+
+networks:
+  crawlcraft_net:
+    driver: bridge
+    # ── 如果 Redpanda 也在 Docker 内，取消注释让它们同网络 ──
+    # enable_ipv6: false
+    # ipam:
+    #   config:
+    #     - subnet: 172.20.0.0/16

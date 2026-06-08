@@ -145,7 +145,7 @@ async def _start_health_server(port, plugins, scheduler):
 
     server = await asyncio.start_server(
         handle_request,
-        host="127.0.0.1",
+        host=settings.daemon_host,
         port=port,
     )
     return server
