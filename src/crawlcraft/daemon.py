@@ -11,11 +11,12 @@ from functools import partial
 from crawlcraft.core.plugins import load_plugins
 from crawlcraft.core.task import list_tasks
 from crawlcraft.pipeline import RedpandaPipeline
+from crawlcraft.settings import settings
 
 logger = logging.getLogger(__name__)
 
 
-async def run_daemon(port: int = 8910):
+async def run_daemon(port: int | None = None):
     """Main daemon entry point.
 
     Starts:
@@ -24,6 +25,9 @@ async def run_daemon(port: int = 8910):
     3. HTTP health check server
     4. Signal handlers for graceful shutdown & hot-reload
     """
+
+    if port is None:
+        port = settings.daemon_port
 
     # Load plugins
     logger.info("Loading plugins...")

@@ -10,6 +10,8 @@ from typing import Any
 
 from kafka import KafkaProducer
 
+from crawlcraft.settings import settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -19,15 +21,19 @@ class RedpandaError(Exception):
 
 @dataclass
 class RedpandaConfig:
-    """Redpanda connection configuration."""
+    """Redpanda connection configuration.
 
-    bootstrap_servers: str = "localhost:9092"
-    topic_prefix: str = "crawl"
-    batch_size: int = 16384
-    linger_ms: int = 1000
-    compression_type: str = "lz4"
-    acks: str = "1"  # "all" for full durability, "1" for leader-only
-    max_retries: int = 3
+    Defaults are read from environment / .env (via ``crawlcraft.settings``).
+    Override any field to customise per-instance.
+    """
+
+    bootstrap_servers: str = settings.redpanda_bootstrap_servers
+    topic_prefix: str = settings.redpanda_topic_prefix
+    batch_size: int = settings.redpanda_batch_size
+    linger_ms: int = settings.redpanda_linger_ms
+    compression_type: str = settings.redpanda_compression
+    acks: str = settings.redpanda_acks
+    max_retries: int = settings.redpanda_max_retries
 
 
 class RedpandaPipeline:
