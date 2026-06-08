@@ -1,0 +1,30 @@
+[project]
+name = "crawlcraft"
+version = "0.1.0"
+description = "Lightweight, pluggable scraping engine — hot-plug scrapers, cron scheduling, Redpanda output, AI-friendly CLI"
+authors = [{ name = "jiangboli" }]
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+    "click>=8.1",
+    "apscheduler>=3.10",
+    "kafka-python>=2.0",
+    "httpx>=0.27",
+    "pydantic>=2.0",
+    "pydantic-settings>=2.0",
+    "aiosqlite>=0.20",
+]
+
+[project.urls]
+homepage = "https://github.com/jiangboli/crawlcraft"
+repository = "https://github.com/jiangboli/crawlcraft"
+
+[project.scripts]
+crawlctl = "crawlcraft.cli.main:cli"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
