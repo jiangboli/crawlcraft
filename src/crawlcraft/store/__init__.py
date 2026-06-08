@@ -6,11 +6,13 @@ import logging
 import os
 from pathlib import Path
 
+from crawlcraft.settings import settings
+
 import aiosqlite
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = Path.home() / ".crawlcraft"
+DATA_DIR = Path(os.path.expanduser(settings.data_dir))
 DB_PATH = DATA_DIR / "crawlcraft.db"
 
 _conn: aiosqlite.Connection | None = None

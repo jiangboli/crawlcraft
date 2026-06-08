@@ -28,3 +28,9 @@ Thumbs.db
 
 # Env
 .env
+
+# Temp/scratch files
+*.secret
+.trev
+.push_*.py
+fetch_all_*.py
